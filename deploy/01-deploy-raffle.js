@@ -12,14 +12,14 @@ module.exports = async function ({getNamedAccounts, deployments}) {
     console.log(`chainId 01 : ${chainId}`)
     console.log("inside the 01-deploy-raffle.js");
     if(developmentChains.includes(network.name)){
-        const vrfCoordinatorV2Mock = await ethers.getContractAt("VRFCoordinatorV2Mock");
+        const vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock");
         //const vrfCoordinatorV2Mock = await ethers.getContractFactory("VRFCoordinatorV2Mock");
         console.log("after mock");
         vrfCoordinatorV2Address = vrfCoordinatorV2Mock.address;
         console.log(`Address ${vrfCoordinatorV2Address}`)
         const transactionResponse = await vrfCoordinatorV2Mock.createSubscription();
         const transactionReceipt = await transactionResponse.wait(1);
-        subscriptionId = transactionReceipt.event[0].args.subId;
+        subscriptionId = transactionReceipt.events[0].args.subId;
         await vrfCoordinatorV2Mock.fundSubscription(subscriptionId, VRF_SUB_FUND_AMOUNT);
     } else {
         vrfCoordinatorV2Address = networkConfig[chainId]["vrfCoordinatorV2"];
@@ -30,7 +30,7 @@ module.exports = async function ({getNamedAccounts, deployments}) {
     const callbackGasLimit = networkConfig[chainId]["callbackGasLimit"];
     const interval = networkConfig[chainId]["interval"];
 
-    const args = [vrfCoordinatorV2Address, subscriptionId, interval, entranceFee, gasLane,  callbackGasLimit];
+    const args = [vrfCoordinatorV2Address, entranceFee, gasLane, subscriptionId,  callbackGasLimit, interval];
     const raffle = await deploy("Raffle", {
         from : deployer,
         args : args,
